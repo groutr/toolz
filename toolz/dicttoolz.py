@@ -1,11 +1,40 @@
 import copy
 import operator
 from toolz.compatibility import (map, zip, iteritems, iterkeys, itervalues,
-                                 reduce)
+                                 reduce, MutableMapping)
 
 __all__ = ('merge', 'merge_with', 'valmap', 'keymap', 'itemmap',
            'valfilter', 'keyfilter', 'itemfilter',
            'assoc', 'dissoc', 'assoc_in', 'update_in', 'get_in')
+
+def check_factory(factory):
+    """ Function to verify that objects returned by the 
+    callable, factory(), are mutable mappings
+
+    If the call to factory() is a mutable mapping, then factory is returned.
+    Otherwise a TypeError is raised.
+    
+    >>> check_factory(dict)
+    dict
+
+    If a boolean value is desired then check the argument against itself.
+    
+    >>> check_factory(dict) is dict
+    True
+
+    This function was designed to allow inline checking with other dicttoolz calls.
+    No functions call this internally to avoid the performance overhead of the check.
+    It must be called by the user.
+    
+    >>> a = {"first": "Alice"}
+    >>> b = {"last": "Brown"}
+    >>> merge(a, b, factory=check_factory(dict))
+    {"first": "Alice", "last": "Brown"}
+    """
+    rv = factory()
+    if isinstance(rv, MutableMapping):
+        return factory
+    raise TypeError("{} is not a mutable mapping type".format(type(rv)))
 
 
 def _get_factory(f, kwargs):
@@ -30,7 +59,7 @@ def merge(*dicts, **kwargs):
     See Also:
         merge_with
     """
-    if len(dicts) == 1 and not isinstance(dicts[0], dict):
+    if len(dicts) == 1 and not isinstance(dicts[0], MutableMapping):
         dicts = dicts[0]
     factory = _get_factory(merge, kwargs)
 
@@ -55,7 +84,7 @@ def merge_with(func, *dicts, **kwargs):
     See Also:
         merge
     """
-    if len(dicts) == 1 and not isinstance(dicts[0], dict):
+    if len(dicts) == 1 and not isinstance(dicts[0], MutableMapping):
         dicts = dicts[0]
     factory = _get_factory(merge_with, kwargs)
 
@@ -191,6 +220,7 @@ def assoc(d, key, value, factory=dict):
     >>> assoc({'x': 1}, 'y', 3)   # doctest: +SKIP
     {'x': 1, 'y': 3}
     """
+
     d2 = factory()
     d2[key] = value
     return merge(d, d2, factory=factory)
