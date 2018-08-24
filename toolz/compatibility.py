@@ -21,7 +21,7 @@ if PY3:
     iterkeys = operator.methodcaller('keys')
     itervalues = operator.methodcaller('values')
 
-    from collections.abc import MutableMapping
+    from collections.abc import Mapping, MutableMapping
 else:
     range = xrange
     reduce = reduce
@@ -34,7 +34,7 @@ else:
     iterkeys = operator.methodcaller('iterkeys')
     itervalues = operator.methodcaller('itervalues')
 
-    from collections import MutableMapping
+    from collections import Mapping, MutableMapping
 
 try:
     from importlib import import_module
